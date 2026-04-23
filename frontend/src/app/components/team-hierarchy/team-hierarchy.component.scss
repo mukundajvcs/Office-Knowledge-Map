@@ -1,0 +1,237 @@
+.hierarchy-container {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  background: transparent;
+  min-height: 100vh;
+}
+
+mat-card {
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(10px);
+
+  mat-card-header {
+    margin-bottom: 24px;
+    padding: 24px 24px 0;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+    border-radius: 12px 12px 0 0;
+
+    mat-card-title {
+      font-size: 28px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #4A90E2 0%, #764BA2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    mat-card-subtitle {
+      color: #5A6C7D;
+      margin-top: 8px;
+      font-size: 16px;
+    }
+  }
+}
+
+.toolbar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+
+  button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+    mat-icon {
+      margin: 0;
+    }
+
+    // Expand All button (primary color)
+    &.mat-mdc-raised-button.mat-primary {
+      background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+      color: white;
+
+      &:hover {
+        background: linear-gradient(135deg, #5570d8 0%, #653a90 100%);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        transform: translateY(-2px);
+      }
+
+      &:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 6px rgba(102, 126, 234, 0.2);
+      }
+    }
+
+    // Collapse All and Refresh buttons (default)
+    &.mat-mdc-raised-button:not(.mat-primary) {
+      background: white;
+      color: #667EEA;
+      border: 1px solid #667EEA;
+
+      &:hover {
+        background: rgba(102, 126, 234, 0.1);
+        border-color: #5570d8;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        transform: translateY(-2px);
+      }
+
+      &:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 6px rgba(102, 126, 234, 0.15);
+      }
+    }
+  }
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60px;
+}
+
+.team-tree {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 249, 250, 0.95) 100%);
+  backdrop-filter: blur(10px);
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.tree-node {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+  min-height: 48px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+    border-radius: 8px;
+    transform: translateX(4px);
+  }
+
+  &.leaf-node {
+    padding-left: 40px;
+  }
+
+  .expand-icon {
+    color: #667EEA;
+    transition: transform 0.2s;
+  }
+
+  .node-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    padding: 8px 12px;
+    border-radius: 4px;
+
+    .team-icon {
+      color: #667eea;
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
+
+      &.main-team {
+        color: #673ab7;
+      }
+    }
+
+    .team-name {
+      font-size: 16px;
+      font-weight: 500;
+      color: #333;
+
+      &.main-team-name {
+        font-size: 18px;
+        font-weight: 600;
+      }
+    }
+
+    .team-type {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 500;
+      background-color: #ff9800;
+      color: white;
+
+      &.main-team-badge {
+        background-color: #673ab7;
+      }
+    }
+
+    .team-description {
+      color: #666;
+      font-size: 14px;
+      font-style: italic;
+    }
+
+    .member-count {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-left: auto;
+      color: #666;
+      font-size: 14px;
+
+      mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+      }
+    }
+  }
+}
+
+.nested-node {
+  padding-left: 40px;
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.3s ease-out;
+
+  &.expanded {
+    max-height: 5000px;
+    transition: max-height 0.5s ease-in;
+  }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: #999;
+
+  mat-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+  }
+
+  p {
+    font-size: 16px;
+    margin: 0;
+  }
+}
+
+mat-tree-node {
+  display: block;
+  outline: none;
+}

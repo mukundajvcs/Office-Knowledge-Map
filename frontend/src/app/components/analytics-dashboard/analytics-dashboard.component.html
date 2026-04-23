@@ -1,0 +1,212 @@
+<div class="analytics-container">
+  <div *ngIf="!canViewAnalytics" class="no-permission">
+    <mat-icon>lock</mat-icon>
+    <p>You don't have permission to view analytics. This feature is available for Admin, Manager, and Team Lead roles only.</p>
+  </div>
+
+  <div *ngIf="canViewAnalytics">
+    <!-- Header with Export Actions -->
+    <div class="dashboard-header">
+      <div>
+        <h1>Analytics Dashboard</h1>
+        <p class="subtitle">Organizational skill insights and trends</p>
+      </div>
+      <div class="header-actions">
+        <button mat-raised-button (click)="refreshDashboard()" [disabled]="isLoading">
+          <mat-icon>refresh</mat-icon>
+          Refresh
+        </button>
+        <button mat-raised-button color="accent" [matMenuTriggerFor]="exportMenu" [disabled]="isExporting">
+          <mat-icon>download</mat-icon>
+          {{ isExporting ? 'Exporting...' : 'Export Data' }}
+        </button>
+        <mat-menu #exportMenu="matMenu">
+          <button mat-menu-item (click)="exportSkillsData()">
+            <mat-icon>psychology</mat-icon>
+            <span>Export Skills</span>
+          </button>
+          <button mat-menu-item (click)="exportEndorsementsData()">
+            <mat-icon>thumb_up</mat-icon>
+            <span>Export Endorsements</span>
+          </button>
+          <button mat-menu-item (click)="exportAllData()">
+            <mat-icon>folder_zip</mat-icon>
+            <span>Export All Data</span>
+          </button>
+        </mat-menu>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="loading-container">
+      <mat-spinner diameter="60"></mat-spinner>
+      <p>Loading analytics data...</p>
+    </div>
+
+    <!-- Dashboard Content -->
+    <div *ngIf="!isLoading && dashboardData" class="dashboard-content">
+      <!-- Summary Cards -->
+      <div class="summary-cards">
+        <mat-card class="stat-card">
+          <mat-card-content>
+            <div class="stat-icon" style="background-color: #667eea;">
+              <mat-icon>people</mat-icon>
+            </div>
+            <div class="stat-info">
+              <h2>{{ dashboardData.totalUsers }}</h2>
+              <p>Total Users</p>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="stat-card">
+          <mat-card-content>
+            <div class="stat-icon" style="background-color: #4facfe;">
+              <mat-icon>psychology</mat-icon>
+            </div>
+            <div class="stat-info">
+              <h2>{{ dashboardData.totalSkills }}</h2>
+              <p>Total Skills</p>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="stat-card">
+          <mat-card-content>
+            <div class="stat-icon" style="background-color: #43e97b;">
+              <mat-icon>thumb_up</mat-icon>
+            </div>
+            <div class="stat-info">
+              <h2>{{ dashboardData.totalEndorsements }}</h2>
+              <p>Total Endorsements</p>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <!-- Top Skills Table -->
+      <mat-card class="section-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>emoji_events</mat-icon>
+            Top Skills in Organization
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div *ngIf="dashboardData.topSkills && dashboardData.topSkills.length === 0" class="empty-state">
+            <mat-icon>info</mat-icon>
+            <p>No skills data available yet.</p>
+          </div>
+          
+          <table mat-table [dataSource]="dashboardData.topSkills" class="skills-table" *ngIf="dashboardData.topSkills && dashboardData.topSkills.length > 0">
+            <ng-container matColumnDef="skillName">
+              <th mat-header-cell *matHeaderCellDef>Skill Name</th>
+              <td mat-cell *matCellDef="let skill">
+                <strong>{{ skill.skillName }}</strong>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="skillType">
+              <th mat-header-cell *matHeaderCellDef>Type</th>
+              <td mat-cell *matCellDef="let skill">
+                <mat-chip [class]="getSkillTypeClass(skill.skillType)" selected>
+                  {{ skill.skillType }}
+                </mat-chip>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="userCount">
+              <th mat-header-cell *matHeaderCellDef>Users</th>
+              <td mat-cell *matCellDef="let skill">
+                <span class="count-badge">
+                  <mat-icon>people</mat-icon>
+                  {{ skill.userCount }}
+                </span>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="endorsements">
+              <th mat-header-cell *matHeaderCellDef>Endorsements</th>
+              <td mat-cell *matCellDef="let skill">
+                <span class="endorsement-badge">
+                  <mat-icon>thumb_up</mat-icon>
+                  {{ skill.totalEndorsements }}
+                </span>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="proficiency">
+              <th mat-header-cell *matHeaderCellDef>Avg Proficiency</th>
+              <td mat-cell *matCellDef="let skill">
+                <span class="proficiency-indicator">
+                  {{ getProficiencyStars(skill.averageProficiency) }}
+                  {{ skill.averageProficiency }}
+                </span>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="topSkillsColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: topSkillsColumns;"></tr>
+          </table>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Team Summaries -->
+      <mat-card class="section-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>corporate_fare</mat-icon>
+            Team Skill Summaries
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div *ngIf="!dashboardData.teamSummaries || dashboardData.teamSummaries.length === 0" class="empty-state">
+            <mat-icon>info</mat-icon>
+            <p>No team data available yet.</p>
+          </div>
+          
+          <div class="teams-grid" *ngIf="dashboardData.teamSummaries && dashboardData.teamSummaries.length > 0">
+            <div *ngFor="let team of dashboardData.teamSummaries; let i = index" class="team-card"
+                 [style.border-left-color]="getTeamColor(i)">
+              <h3>{{ team.teamName }}</h3>
+              <div class="team-stats">
+                <div class="team-stat">
+                  <mat-icon>people</mat-icon>
+                  <span>{{ team.totalMembers }} members</span>
+                </div>
+                <div class="team-stat">
+                  <mat-icon>psychology</mat-icon>
+                  <span>{{ team.totalSkills }} skills</span>
+                </div>
+              </div>
+
+              <mat-divider></mat-divider>
+
+              <div class="top-skills-list" *ngIf="team.topSkills && team.topSkills.length > 0">
+                <h4>Top Skills:</h4>
+                <div class="skill-chips">
+                  <mat-chip *ngFor="let skill of team.topSkills.slice(0, 5)">
+                    {{ skill.skillName }} ({{ skill.count }})
+                  </mat-chip>
+                </div>
+              </div>
+
+              <div class="distribution" *ngIf="team.skillDistribution && team.skillDistribution.length > 0">
+                <h4>Skill Type Distribution:</h4>
+                <div class="distribution-bars">
+                  <div *ngFor="let dist of team.skillDistribution" class="distribution-bar">
+                    <span class="label">{{ dist.skillType }}</span>
+                    <div class="bar-container">
+                      <div class="bar" [style.width.%]="team.totalSkills > 0 ? (dist.count / team.totalSkills) * 100 : 0"></div>
+                    </div>
+                    <span class="value">{{ dist.count }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>

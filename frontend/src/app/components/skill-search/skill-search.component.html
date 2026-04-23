@@ -1,0 +1,161 @@
+<div class="search-container">
+  <mat-card class="search-card">
+    <mat-card-header>
+      <mat-card-title>Skill Search</mat-card-title>
+      <mat-card-subtitle>Find team members by skills, expertise, and teams</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <!-- Search Form -->
+      <form [formGroup]="searchForm" (ngSubmit)="onSearch()" class="search-form">
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Skill Name</mat-label>
+            <input matInput formControlName="skillName" placeholder="e.g., Angular, Python">
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Skill Type</mat-label>
+            <mat-select formControlName="skillType">
+              <mat-option value="">All Types</mat-option>
+              <mat-option *ngFor="let type of skillTypes" [value]="type">
+                {{ type }}
+              </mat-option>
+            </mat-select>
+            <mat-icon matSuffix>category</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Proficiency Level</mat-label>
+            <mat-select formControlName="proficiency">
+              <mat-option value="">All Levels</mat-option>
+              <mat-option *ngFor="let level of proficiencyLevels" [value]="level">
+                {{ level }}
+              </mat-option>
+            </mat-select>
+            <mat-icon matSuffix>trending_up</mat-icon>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Main Team</mat-label>
+            <mat-select formControlName="mainTeamId">
+              <mat-option value="">All Teams</mat-option>
+              <mat-option *ngFor="let team of mainTeams" [value]="team.id">
+                {{ team.name }}
+              </mat-option>
+            </mat-select>
+            <mat-icon matSuffix>corporate_fare</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Sub Team</mat-label>
+            <mat-select formControlName="subTeamId" [disabled]="!searchForm.get('mainTeamId')?.value">
+              <mat-option value="">All Sub Teams</mat-option>
+              <mat-option *ngFor="let team of subTeams" [value]="team.id">
+                {{ team.name }}
+              </mat-option>
+            </mat-select>
+            <mat-icon matSuffix>groups</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Role</mat-label>
+            <mat-select formControlName="role">
+              <mat-option value="">All Roles</mat-option>
+              <mat-option *ngFor="let role of userRoles" [value]="role">
+                {{ role }}
+              </mat-option>
+            </mat-select>
+            <mat-icon matSuffix>badge</mat-icon>
+          </mat-form-field>
+        </div>
+
+        <div class="button-group">
+          <button mat-raised-button color="primary" type="submit" [disabled]="isSearching">
+            <mat-icon>search</mat-icon>
+            {{ isSearching ? 'Searching...' : 'Search' }}
+          </button>
+          <button mat-stroked-button type="button" (click)="onReset()">
+            <mat-icon>clear</mat-icon>
+            Clear
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Search Results -->
+  <div class="results-section" *ngIf="hasSearched">
+    <div class="results-header">
+      <h2>Search Results ({{ searchResults.length }})</h2>
+    </div>
+
+    <div *ngIf="isSearching" class="loading-container">
+      <mat-spinner diameter="50"></mat-spinner>
+    </div>
+
+    <div *ngIf="!isSearching && searchResults.length === 0" class="empty-state">
+      <mat-icon>search_off</mat-icon>
+      <p>No results found. Try adjusting your search filters.</p>
+    </div>
+
+    <div *ngIf="!isSearching && searchResults.length > 0" class="results-grid">
+      <mat-card *ngFor="let result of searchResults" class="result-card">
+        <mat-card-header>
+          <div class="user-header">
+            <div class="user-avatar">
+              <img *ngIf="result.photoUrl" [src]="result.photoUrl" alt="Profile">
+              <div *ngIf="!result.photoUrl" class="avatar-placeholder">
+                {{ getUserInitials(result.userName) }}
+              </div>
+            </div>
+            <div class="user-info">
+              <h3>{{ result.userName }}</h3>
+              <span class="user-role">{{ result.userRole }}</span>
+              <span class="user-contact">{{ result.contactInfo }}</span>
+            </div>
+          </div>
+        </mat-card-header>
+
+        <mat-divider></mat-divider>
+
+        <mat-card-content>
+          <div class="team-info" *ngIf="result.mainTeamName">
+            <mat-icon>corporate_fare</mat-icon>
+            <span>{{ result.mainTeamName }}</span>
+            <span *ngIf="result.subTeamName"> / {{ result.subTeamName }}</span>
+          </div>
+
+          <div class="skills-section">
+            <h4>Skills ({{ result.skills.length }})</h4>
+            <div class="skills-list">
+              <div *ngFor="let skill of result.skills" class="skill-badge">
+                <div class="skill-name">
+                  <strong>{{ skill.name }}</strong>
+                  <mat-chip [color]="getSkillTypeColor(skill.type)" selected size="small">
+                    {{ skill.type }}
+                  </mat-chip>
+                </div>
+                <div class="skill-details">
+                  <span class="proficiency">{{ getProficiencyStars(skill.proficiency) }} {{ skill.proficiency }}</span>
+                  <span class="endorsements">
+                    <mat-icon>thumb_up</mat-icon>
+                    {{ skill.endorsementCount }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="total-endorsements">
+            <mat-icon>emoji_events</mat-icon>
+            <span>Total Endorsements: <strong>{{ result.totalEndorsements }}</strong></span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,124 @@
+<div class="profile-container">
+  <mat-card class="profile-card">
+    <mat-card-header>
+      <mat-card-title>My Profile</mat-card-title>
+      <mat-card-subtitle>Manage your personal information</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <div *ngIf="isLoading" class="loading-container">
+        <mat-spinner diameter="50"></mat-spinner>
+      </div>
+
+      <div *ngIf="!isLoading" class="profile-content">
+        <!-- Photo Section -->
+        <div class="photo-section">
+          <div class="photo-container">
+            <div class="photo-wrapper">
+              <img *ngIf="photoPreview" [src]="photoPreview" alt="Profile Photo" class="profile-photo" (error)="onImageError($event)">
+              <div *ngIf="!photoPreview" class="photo-placeholder">
+                <span class="initials">{{ getInitials() }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="photo-actions">
+            <input type="file" #fileInput accept="image/*" (change)="onFileSelected($event)" hidden>
+            <button mat-raised-button color="accent" (click)="fileInput.click()" type="button">
+              <mat-icon>photo_camera</mat-icon>
+              Choose Photo
+            </button>
+            <button 
+              mat-raised-button 
+              color="primary" 
+              *ngIf="selectedFile" 
+              (click)="uploadPhoto()" 
+              type="button"
+              [disabled]="isUploadingPhoto">
+              <mat-icon>cloud_upload</mat-icon>
+              {{ isUploadingPhoto ? 'Uploading...' : 'Upload' }}
+            </button>
+            <button mat-stroked-button *ngIf="selectedFile" (click)="clearPhoto()" type="button">
+              <mat-icon>close</mat-icon>
+              Cancel
+            </button>
+          </div>
+        </div>
+
+        <mat-divider></mat-divider>
+
+        <!-- Profile Form -->
+        <form [formGroup]="profileForm" (ngSubmit)="onUpdateProfile()" class="profile-form">
+          <h3 class="section-title">Personal Information</h3>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Username</mat-label>
+              <input matInput formControlName="username" readonly>
+              <mat-icon matSuffix>person</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Role</mat-label>
+              <input matInput formControlName="role" readonly>
+              <mat-icon matSuffix>badge</mat-icon>
+            </mat-form-field>
+          </div>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Full Name</mat-label>
+            <input matInput formControlName="name" placeholder="Enter your full name">
+            <mat-icon matSuffix>account_circle</mat-icon>
+            <mat-error *ngIf="profileForm.get('name')?.hasError('required')">
+              Full name is required
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Email</mat-label>
+            <input matInput type="email" formControlName="contactInfo" placeholder="Enter your email">
+            <mat-icon matSuffix>email</mat-icon>
+            <mat-error *ngIf="profileForm.get('contactInfo')?.hasError('required')">
+              Email is required
+            </mat-error>
+            <mat-error *ngIf="profileForm.get('contactInfo')?.hasError('email')">
+              Enter a valid email address
+            </mat-error>
+          </mat-form-field>
+
+          <div class="button-group">
+            <button 
+              mat-raised-button 
+              color="primary" 
+              type="submit" 
+              [disabled]="isSaving || profileForm.invalid || profileForm.pristine">
+              <mat-icon>save</mat-icon>
+              {{ isSaving ? 'Saving...' : 'Save Changes' }}
+            </button>
+            <button mat-stroked-button type="button" (click)="loadUserProfile()">
+              <mat-icon>refresh</mat-icon>
+              Reset
+            </button>
+          </div>
+        </form>
+
+        <!-- Additional Info -->
+        <mat-divider></mat-divider>
+
+        <div class="info-section">
+          <h3 class="section-title">Account Information</h3>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">Member Since</span>
+              <span class="info-value">{{ (currentUser?.createdAt | date:'mediumDate') || 'N/A' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Last Updated</span>
+              <span class="info-value">{{ (currentUser?.updatedAt | date:'mediumDate') || 'N/A' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

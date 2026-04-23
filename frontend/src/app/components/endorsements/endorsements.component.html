@@ -1,0 +1,174 @@
+<div class="endorsements-container">
+  <mat-card class="summary-card">
+    <mat-card-header>
+      <mat-card-title>Endorsements</mat-card-title>
+      <mat-card-subtitle>View and give endorsements for skills</mat-card-subtitle>
+    </mat-card-header>
+  </mat-card>
+
+  <mat-tab-group class="endorsements-tabs">
+    <!-- Received Endorsements Tab -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon>thumb_up</mat-icon>
+        <span [matBadge]="getTotalEndorsements()" matBadgeOverlap="false">Received</span>
+      </ng-template>
+
+      <div class="tab-content">
+        <div *ngIf="isLoadingReceived" class="loading-container">
+          <mat-spinner diameter="50"></mat-spinner>
+        </div>
+
+        <div *ngIf="!isLoadingReceived && receivedEndorsements.length === 0" class="empty-state">
+          <mat-icon>emoji_events</mat-icon>
+          <p>No endorsements received yet. Build your skills and ask colleagues to endorse you!</p>
+        </div>
+
+        <div *ngIf="!isLoadingReceived && receivedEndorsementsSummary.length > 0" class="endorsements-grid">
+          <mat-card *ngFor="let skillEndorsement of receivedEndorsementsSummary" class="endorsement-card">
+            <mat-card-header>
+              <div class="skill-header">
+                <h3>{{ skillEndorsement.skillName }}</h3>
+                <mat-chip color="primary" selected>
+                  {{ skillEndorsement.totalEndorsements }} endorsement{{ skillEndorsement.totalEndorsements !== 1 ? 's' : '' }}
+                </mat-chip>
+              </div>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="endorsers-list">
+                <div *ngFor="let endorser of skillEndorsement.endorsers" class="endorser-item">
+                  <div class="endorser-avatar">
+                    {{ getUserInitials(endorser.name) }}
+                  </div>
+                  <div class="endorser-info">
+                    <strong>{{ endorser.name }}</strong>
+                    <span class="endorsement-date">{{ endorser.timestamp | date:'short' }}</span>
+                  </div>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- Given Endorsements Tab (Hidden for Employees) -->
+    <mat-tab *ngIf="currentUserRole !== UserRole.EMPLOYEE">
+      <ng-template mat-tab-label>
+        <mat-icon>favorite</mat-icon>
+        <span [matBadge]="givenEndorsements.length" matBadgeOverlap="false">Given</span>
+      </ng-template>
+
+      <div class="tab-content">
+        <div *ngIf="isLoadingGiven" class="loading-container">
+          <mat-spinner diameter="50"></mat-spinner>
+        </div>
+
+        <div *ngIf="!isLoadingGiven && givenEndorsements.length === 0" class="empty-state">
+          <mat-icon>volunteer_activism</mat-icon>
+          <p>You haven't endorsed anyone yet. Help your team members by endorsing their skills!</p>
+        </div>
+
+        <mat-accordion *ngIf="!isLoadingGiven && givenEndorsementsGrouped.length > 0">
+          <mat-expansion-panel *ngFor="let userGroup of givenEndorsementsGrouped" class="given-user-panel">
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                <div class="user-header">
+                  <div class="user-avatar">
+                    {{ getUserInitials(userGroup.userName) }}
+                  </div>
+                  <div class="user-info">
+                    <strong>{{ userGroup.userName }}</strong>
+                    <span class="endorsement-count-label">
+                      <mat-icon>check_circle</mat-icon>
+                      {{ userGroup.skills.length }} skill{{ userGroup.skills.length !== 1 ? 's' : '' }} endorsed
+                    </span>
+                  </div>
+                </div>
+              </mat-panel-title>
+            </mat-expansion-panel-header>
+
+            <div class="endorsed-skills-list">
+              <div *ngFor="let skill of userGroup.skills" class="endorsed-skill-item">
+                <div class="skill-icon">
+                  <mat-icon color="accent">favorite</mat-icon>
+                </div>
+                <div class="skill-info">
+                  <strong>{{ skill.skillName }}</strong>
+                  <span class="endorsement-date">{{ skill.endorsementDate | date:'medium' }}</span>
+                </div>
+                <mat-icon class="check-icon" color="primary">verified</mat-icon>
+              </div>
+            </div>
+          </mat-expansion-panel>
+        </mat-accordion>
+      </div>
+    </mat-tab>
+
+    <!-- Endorse Others Tab (Hidden for Employees) -->
+    <mat-tab *ngIf="currentUserRole !== UserRole.EMPLOYEE">
+      <ng-template mat-tab-label>
+        <mat-icon>people</mat-icon>
+        Endorse Team
+      </ng-template>
+
+      <div class="tab-content">
+        <div *ngIf="isLoadingMembers" class="loading-container">
+          <mat-spinner diameter="50"></mat-spinner>
+        </div>
+
+        <div *ngIf="!isLoadingMembers && filteredTeamMembers.length === 0" class="empty-state">
+          <mat-icon>group_off</mat-icon>
+          <p>No team members available to endorse. Team members must be in your team and within your endorsement role hierarchy.</p>
+        </div>
+
+        <mat-accordion *ngIf="!isLoadingMembers && filteredTeamMembers.length > 0">
+          <mat-expansion-panel *ngFor="let member of filteredTeamMembers" class="member-panel">
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                <div class="member-header">
+                  <div class="member-avatar">
+                    {{ getUserInitials(member.name) }}
+                  </div>
+                  <div class="member-info">
+                    <strong>{{ member.name }}</strong>
+                    <span class="member-role">{{ member.role }}</span>
+                  </div>
+                </div>
+              </mat-panel-title>
+              <mat-panel-description>
+                {{ getMemberSkills(member.id!).length }} skills
+              </mat-panel-description>
+            </mat-expansion-panel-header>
+
+            <div class="member-skills">
+              <div *ngIf="getMemberSkills(member.id!).length === 0" class="no-skills">
+                This user hasn't added any skills yet.
+              </div>
+
+              <div *ngFor="let skill of getMemberSkills(member.id!)" class="skill-item">
+                <div class="skill-details">
+                  <strong>{{ skill.name }}</strong>
+                  <mat-chip [color]="'primary'" selected size="small">{{ skill.type }}</mat-chip>
+                  <span class="proficiency">{{ skill.proficiency }}</span>
+                  <span class="endorsement-count">
+                    <mat-icon>thumb_up</mat-icon>
+                    {{ skill.endorsementCount || 0 }}
+                  </span>
+                </div>
+                <button
+                  mat-raised-button
+                  color="accent"
+                  (click)="endorseSkill(member.id!, skill.id!, skill.name)"
+                  [disabled]="hasEndorsed(skill.id!)">
+                  <mat-icon>{{ hasEndorsed(skill.id!) ? 'check' : 'thumb_up' }}</mat-icon>
+                  {{ hasEndorsed(skill.id!) ? 'Endorsed' : 'Endorse' }}
+                </button>
+              </div>
+            </div>
+          </mat-expansion-panel>
+        </mat-accordion>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>

@@ -1,0 +1,164 @@
+<div class="assignment-container">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Role & Team Assignment</mat-card-title>
+      <mat-card-subtitle>Manage user roles and team assignments (Admin/Manager/Team Lead only)</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <div *ngIf="!canAssignRoles" class="no-permission">
+        <mat-icon>lock</mat-icon>
+        <p>You don't have permission to access this page.</p>
+      </div>
+
+      <div *ngIf="canAssignRoles">
+        <div *ngIf="isLoading" class="loading-container">
+          <mat-spinner diameter="50"></mat-spinner>
+        </div>
+
+        <div *ngIf="!isLoading">
+          <!-- Assignment Form -->
+          <form [formGroup]="assignmentForm" class="assignment-form">
+            <h3 class="section-title">Assign Roles & Teams</h3>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Select User</mat-label>
+              <mat-select formControlName="userId" (selectionChange)="onUserSelected()">
+                <mat-option *ngFor="let user of users" [value]="user.id">
+                  {{ user.name }} ({{ user.username }})
+                </mat-option>
+              </mat-select>
+              <mat-icon matSuffix>person</mat-icon>
+            </mat-form-field>
+
+            <div *ngIf="selectedUser" class="selected-user-info">
+              <div class="user-info-card">
+                <div class="info-row">
+                  <span class="label">Current Role:</span>
+                  <span class="value" [class]="getRoleBadgeClass(selectedUser.role)">
+                    {{ selectedUser.role }}
+                  </span>
+                </div>
+                <div class="info-row">
+                  <span class="label">Current Team:</span>
+                  <span class="value">{{ getTeamName(selectedUser.mainTeamId) }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-section" *ngIf="selectedUser">
+              <h4 class="subsection-title">Update Role</h4>
+              <div class="form-row">
+                <mat-form-field appearance="outline" class="form-field">
+                  <mat-label>New Role</mat-label>
+                  <mat-select formControlName="role">
+                    <mat-option *ngFor="let role of userRoles" [value]="role">
+                      {{ role }}
+                    </mat-option>
+                  </mat-select>
+                  <mat-icon matSuffix>badge</mat-icon>
+                </mat-form-field>
+
+                <button 
+                  mat-raised-button 
+                  color="primary" 
+                  type="button"
+                  (click)="onAssignRole()" 
+                  [disabled]="isSaving || !assignmentForm.get('role')?.value">
+                  <mat-icon>assignment_ind</mat-icon>
+                  Update Role
+                </button>
+              </div>
+            </div>
+
+            <div class="form-section" *ngIf="selectedUser">
+              <h4 class="subsection-title">Update Team Assignment</h4>
+              <div class="form-row">
+                <mat-form-field appearance="outline" class="form-field">
+                  <mat-label>Main Team</mat-label>
+                  <mat-select formControlName="mainTeamId" (selectionChange)="onMainTeamSelected()">
+                    <mat-option value="">None</mat-option>
+                    <mat-option *ngFor="let team of mainTeams" [value]="team.id">
+                      {{ team.name }}
+                    </mat-option>
+                  </mat-select>
+                  <mat-icon matSuffix>corporate_fare</mat-icon>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="form-field">
+                  <mat-label>Sub Team</mat-label>
+                  <mat-select formControlName="subTeamId" [disabled]="!assignmentForm.get('mainTeamId')?.value">
+                    <mat-option value="">None</mat-option>
+                    <mat-option *ngFor="let team of subTeams" [value]="team.id">
+                      {{ team.name }}
+                    </mat-option>
+                  </mat-select>
+                  <mat-icon matSuffix>groups</mat-icon>
+                </mat-form-field>
+              </div>
+
+              <button 
+                mat-raised-button 
+                color="accent" 
+                type="button"
+                (click)="onAssignTeam()" 
+                [disabled]="isSaving || !assignmentForm.get('mainTeamId')?.value">
+                <mat-icon>group_add</mat-icon>
+                {{ isSaving ? 'Saving...' : 'Update Team Assignment' }}
+              </button>
+            </div>
+          </form>
+
+          <!-- Users Table -->
+          <div class="table-section">
+            <h3 class="section-title">All Users</h3>
+            <table mat-table [dataSource]="users" class="users-table">
+              <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef>Name</th>
+                <td mat-cell *matCellDef="let user">{{ user.name }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="username">
+                <th mat-header-cell *matHeaderCellDef>Username</th>
+                <td mat-cell *matCellDef="let user">{{ user.username }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="role">
+                <th mat-header-cell *matHeaderCellDef>Role</th>
+                <td mat-cell *matCellDef="let user">
+                  <span class="role-badge" [class]="getRoleBadgeClass(user.role)">
+                    {{ user.role }}
+                  </span>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="team">
+                <th mat-header-cell *matHeaderCellDef>Team</th>
+                <td mat-cell *matCellDef="let user">
+                  <div class="team-info">
+                    <span class="main-team">{{ getTeamName(user.mainTeamId) }}</span>
+                    <span class="sub-team" *ngIf="user.subTeamId">
+                      / {{ getTeamName(user.subTeamId) }}
+                    </span>
+                  </div>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                <td mat-cell *matCellDef="let user">
+                  <button mat-icon-button color="primary" (click)="selectUserForEdit(user)">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

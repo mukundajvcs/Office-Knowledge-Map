@@ -1,0 +1,99 @@
+/* You can add global styles to this file, and also import other style files */
+@import '@angular/material/prebuilt-themes/indigo-pink.css';
+
+// Color Palette
+$primary-blue: #4A90E2;
+$primary-purple: #667EEA;
+$accent-purple: #764BA2;
+$accent-pink: #E91E63;
+$success-green: #4CAF50;
+$warning-orange: #FF9800;
+$text-dark: #2C3E50;
+$text-secondary: #5A6C7D;
+$text-light: #95A5A6;
+$background-light: #F8F9FA;
+$card-background: #FFFFFF;
+
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  background: linear-gradient(135deg, #E8EAF6 0%, #F3E5F5 50%, #FCE4EC 100%);
+  background-attachment: fixed;
+  color: $text-dark;
+}
+
+// Global Card Styling
+mat-card {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(10px);
+  border-radius: 12px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  
+  &:hover {
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12) !important;
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+  }
+}
+
+// Enhanced Typography
+h1, h2, h3, h4, h5, h6 {
+  color: $text-dark;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+}
+
+h1 {
+  background: linear-gradient(135deg, $primary-blue 0%, $accent-purple 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+// Button Enhancements
+.mat-mdc-raised-button, .mat-mdc-unelevated-button {
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.5px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.3s ease !important;
+  
+  &:hover:not([disabled]) {
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15) !important;
+    transform: translateY(-2px);
+  }
+}
+
+// Form Field Enhancements
+.mat-mdc-form-field {
+  .mat-mdc-text-field-wrapper {
+    background-color: rgba(255, 255, 255, 0.9) !important;
+    border-radius: 8px !important;
+  }
+}
+
+// Scrollbar Styling
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, $primary-blue 0%, $accent-purple 100%);
+  border-radius: 5px;
+  
+  &:hover {
+    background: linear-gradient(135deg, $primary-purple 0%, $accent-purple 100%);
+  }
+}
+
